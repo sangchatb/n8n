@@ -44,33 +44,63 @@ export default Vue.extend({
 			return this.$store.getters.allNodeTypes;
 		},
 		filteredNodeTypes () {
-			const filter = this.nodeFilter.toLowerCase();
-			const nodeTypes: INodeTypeDescription[] = this.$store.getters.allNodeTypes;
+			// @ts-ignore
+			const filter = this.nodeFilter.trim();
 
-			// Apply the filters
-			const returnData = nodeTypes.filter((nodeType) => {
-				if (filter && nodeType.displayName.toLowerCase().indexOf(filter) === -1) {
-					return false;
-				}
-				if (this.selectedType !== 'All') {
-					if (this.selectedType === 'Trigger' && !nodeType.group.includes('trigger')) {
-						return false;
-					} else if (this.selectedType === 'Regular' && nodeType.group.includes('trigger')) {
-						return false;
-					}
-				}
-				return true;
-			});
+			let results = [];
+			let fuse;
+			if (this.selectedType === 'All') {
+				// @ts-ignore
+				fuse = window.allFuzzy;
+			}
+			else if (this.selectedType === 'Trigger') {
+				// @ts-ignore
+				fuse = window.triggerFuzzy;
+			}
+			else {
+				// @ts-ignore
+				fuse = window.inputFuzzy;
+			}
 
-			// Sort the node types
-			let textA, textB;
-			returnData.sort((a, b) => {
-				textA = a.displayName.toLowerCase();
-				textB = b.displayName.toLowerCase();
-				return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
-			});
+			if (!filter) {
+				return fuse._docs;
+			}
 
-			return returnData;
+			results = fuse.search(filter);
+			console.log(results);
+
+			// @ts-ignore
+			results = results.map(result => result.item);
+
+
+			return results;
+
+			// const nodeTypes: INodeTypeDescription[] = this.$store.getters.allNodeTypes;
+
+			// // Apply the filters
+			// const returnData = nodeTypes.filter((nodeType) => {
+			// 	if (filter && nodeType.displayName.toLowerCase().indexOf(filter) === -1) {
+			// 		return false;
+			// 	}
+			// 	if (this.selectedType !== 'All') {
+			// 		if (this.selectedType === 'Trigger' && !nodeType.group.includes('trigger')) {
+			// 			return false;
+			// 		} else if (this.selectedType === 'Regular' && nodeType.group.includes('trigger')) {
+			// 			return false;
+			// 		}
+			// 	}
+			// 	return true;
+			// });
+
+			// // Sort the node types
+			// let textA, textB;
+			// returnData.sort((a, b) => {
+			// 	textA = a.displayName.toLowerCase();
+			// 	textB = b.displayName.toLowerCase();
+			// 	return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+			// });
+
+			// return returnData;
 		},
 	},
 	watch: {

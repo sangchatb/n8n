@@ -81,6 +81,7 @@ export const store = new Vuex.Store({
 			settings: {} as IWorkflowSettings,
 		} as IWorkflowDb,
 		sidebarMenuItems: [] as IMenuItem[],
+		fuse: null,
 	},
 	mutations: {
 		// Active Actions
@@ -480,6 +481,39 @@ export const store = new Vuex.Store({
 		// Node-Types
 		setNodeTypes (state, nodeTypes: INodeTypeDescription[]) {
 			Vue.set(state, 'nodeTypes', nodeTypes);
+
+			// @ts-ignore
+			window.setFuzzy = (opts) => {
+				const triggerTypes = nodeTypes.filter((type) => type.group.indexOf('trigger') >= 0);
+				// @ts-ignore
+				const triggerIndex = window.Fuse.createIndex(opts.keys, triggerTypes);
+				// @ts-ignore
+				window.triggerFuzzy = new window.Fuse(triggerTypes, opts, triggerIndex);
+
+				const inputTypes = nodeTypes.filter((type) => type.group.indexOf('input') >= 0);
+				// @ts-ignore
+				const inputIndex = window.Fuse.createIndex(opts.keys, inputTypes);
+				// @ts-ignore
+				window.inputFuzzy = new window.Fuse(inputTypes, opts, inputIndex);
+
+				// @ts-ignore
+				const allIndex = window.Fuse.createIndex(opts.keys, nodeTypes);
+				// @ts-ignore
+				window.allFuzzy = new window.Fuse(nodeTypes, opts, allIndex);
+				console.log('updated');
+			};
+
+			// @ts-ignore
+			window.setFuzzy(
+				{
+					keys: [
+						{name: 'displayName', weight: 3},
+						{name: 'description', weight: 1},
+						{name: 'codex.alias', weight: 1.5}],
+					threshold: .5,
+					includeScore: true,
+				},
+			);
 		},
 
 		// Active Execution
