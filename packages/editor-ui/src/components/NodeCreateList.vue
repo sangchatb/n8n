@@ -48,7 +48,7 @@ export default mixins(externalHooks).extend({
 		},
 		filteredNodeTypes () {
 			// @ts-ignore
-			if (window.fuzzy) {
+			if (window.search === 'fuzzy') {
 				// @ts-ignore
 				const filter = this.nodeFilter.trim();
 
@@ -107,9 +107,12 @@ export default mixins(externalHooks).extend({
 					return true;
 				}
 
-				const matchesDesc = nodeType.description.toLowerCase().indexOf(filter) > -1;
-				if (matchesDesc) {
-					return true;
+				// @ts-ignore
+				if (window.search === 'generalWithDesc') {
+					const matchesDesc = nodeType.description.toLowerCase().indexOf(filter) > -1;
+					if (matchesDesc) {
+						return true;
+					}
 				}
 
 				if (nodeType.codex) {

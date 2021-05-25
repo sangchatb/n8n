@@ -516,7 +516,7 @@ export const store = new Vuex.Store({
 			);
 
 			// @ts-ignore
-			window.fuzzy = true;
+			window.search = 'fuzzy';
 		},
 
 		// Active Execution
