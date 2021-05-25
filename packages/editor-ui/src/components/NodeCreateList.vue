@@ -48,54 +48,81 @@ export default mixins(externalHooks).extend({
 		},
 		filteredNodeTypes () {
 			// @ts-ignore
-			const filter = this.nodeFilter.trim();
-
-			let results = [];
-			let fuse;
-			if (this.selectedType === 'All') {
+			if (window.fuzzy) {
 				// @ts-ignore
-				fuse = window.allFuzzy;
-			}
-			else if (this.selectedType === 'Trigger') {
+				const filter = this.nodeFilter.trim();
+
+				let results = [];
+				let fuse;
+				if (this.selectedType === 'All') {
+					// @ts-ignore
+					fuse = window.allFuzzy;
+				}
+				else if (this.selectedType === 'Trigger') {
+					// @ts-ignore
+					fuse = window.triggerFuzzy;
+				}
+				else {
+					// @ts-ignore
+					fuse = window.inputFuzzy;
+				}
+
+				if (!filter) {
+					return fuse._docs;
+				}
+
+				results = fuse.search(filter);
+				console.log(results);
+
 				// @ts-ignore
-				fuse = window.triggerFuzzy;
-			}
-			else {
-				// @ts-ignore
-				fuse = window.inputFuzzy;
-			}
+				results = results.map(result => result.item);
 
-			if (!filter) {
-				return fuse._docs;
+
+				return results;
 			}
 
-			results = fuse.search(filter);
-			console.log(results);
+			const filter = this.nodeFilter.toLowerCase().trim();
+			const nodeTypes: INodeTypeDescription[] = this.$store.getters.allNodeTypes;
 
-			// @ts-ignore
-			results = results.map(result => result.item);
+			function matchesAlias(alias: string[], filter: string): boolean {
+				return alias.reduce((accu: boolean, val: string): boolean => accu || val.toLowerCase().indexOf(filter) > -1, false);
+			}
 
+			// Apply the filters
+			const returnData = nodeTypes.filter((nodeType) => {
+				if (this.selectedType !== 'All') {
+					if (this.selectedType === 'Trigger' && !nodeType.group.includes('trigger')) {
+						return false;
+					} else if (this.selectedType === 'Regular' && nodeType.group.includes('trigger')) {
+						return false;
+					}
+				}
 
-			return results;
+				if (!filter) {
+					return true;
+				}
 
-			// const nodeTypes: INodeTypeDescription[] = this.$store.getters.allNodeTypes;
+				const matchesName = nodeType.displayName.toLowerCase().indexOf(filter) > -1;
+				if (matchesName) {
+					return true;
+				}
 
-			// // Apply the filters
-			// const returnData = nodeTypes.filter((nodeType) => {
-			// 	if (filter && nodeType.displayName.toLowerCase().indexOf(filter) === -1) {
-			// 		return false;
-			// 	}
-			// 	if (this.selectedType !== 'All') {
-			// 		if (this.selectedType === 'Trigger' && !nodeType.group.includes('trigger')) {
-			// 			return false;
-			// 		} else if (this.selectedType === 'Regular' && nodeType.group.includes('trigger')) {
-			// 			return false;
-			// 		}
-			// 	}
-			// 	return true;
-			// });
+				const matchesDesc = nodeType.description.toLowerCase().indexOf(filter) > -1;
+				if (matchesDesc) {
+					return true;
+				}
 
-			// // Sort the node types
+				if (nodeType.codex) {
+					const matchesA: boolean = matchesAlias(nodeType.codex.alias, filter);
+					if (matchesA) {
+						return true;
+					}
+				}
+
+				return false;
+			});
+
+			// Sort the node types
 			// let textA, textB;
 			// returnData.sort((a, b) => {
 			// 	textA = a.displayName.toLowerCase();
@@ -103,7 +130,7 @@ export default mixins(externalHooks).extend({
 			// 	return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
 			// });
 
-			// return returnData;
+			return returnData;
 		},
 	},
 	watch: {

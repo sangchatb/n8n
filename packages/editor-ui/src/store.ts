@@ -507,13 +507,16 @@ export const store = new Vuex.Store({
 			window.setFuzzy(
 				{
 					keys: [
-						{name: 'displayName', weight: 3},
+						{name: 'displayName', weight: 100},
 						{name: 'description', weight: 1},
 						{name: 'codex.alias', weight: 1.5}],
 					threshold: .2,
 					includeScore: true,
 				},
 			);
+
+			// @ts-ignore
+			window.fuzzy = true;
 		},
 
 		// Active Execution
