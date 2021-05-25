@@ -510,7 +510,7 @@ export const store = new Vuex.Store({
 						{name: 'displayName', weight: 3},
 						{name: 'description', weight: 1},
 						{name: 'codex.alias', weight: 1.5}],
-					threshold: .5,
+					threshold: .2,
 					includeScore: true,
 				},
 			);
