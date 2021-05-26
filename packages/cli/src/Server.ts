@@ -8,7 +8,6 @@ import {
 	resolve as pathResolve,
 } from 'path';
 import {
-	getConnection,
 	getConnectionManager,
 	In,
 } from 'typeorm';
@@ -22,7 +21,9 @@ import { RequestOptions } from 'oauth-1.0a';
 import * as csrf from 'csrf';
 import * as requestPromise from 'request-promise-native';
 import { createHmac } from 'crypto';
-import { compare } from '@node-rs/bcrypt';
+// IMPORTANT! Do not switch to anther bcrypt library unless really necessary and
+// tested with all possible systems like Windows, Alpine on ARM, FreeBSD, ...
+import { compare } from 'bcryptjs';
 import * as promClient from 'prom-client';
 
 import {
@@ -569,6 +570,7 @@ class App {
 
 			const newWorkflowData = req.body as IWorkflowBase;
 			const id = req.params.id;
+			newWorkflowData.id = id;
 
 			await this.externalHooks.run('workflow.update', [newWorkflowData]);
 
@@ -709,6 +711,7 @@ class App {
 		// get generated dynamically
 		this.app.get(`/${this.restEndpoint}/node-parameter-options`, ResponseHelper.send(async (req: express.Request, res: express.Response): Promise<INodePropertyOptions[]> => {
 			const nodeType = req.query.nodeType as string;
+			const path = req.query.path as string;
 			let credentials: INodeCredentials | undefined = undefined;
 			const currentNodeParameters = JSON.parse('' + req.query.currentNodeParameters) as INodeParameters;
 			if (req.query.credentials !== undefined) {
@@ -718,7 +721,7 @@ class App {
 
 			const nodeTypes = NodeTypes();
 
-			const loadDataInstance = new LoadNodeParameterOptions(nodeType, nodeTypes, JSON.parse('' + req.query.currentNodeParameters), credentials!);
+			const loadDataInstance = new LoadNodeParameterOptions(nodeType, nodeTypes, path, JSON.parse('' + req.query.currentNodeParameters), credentials!);
 
 			const additionalData = await WorkflowExecuteAdditionalData.getBase(currentNodeParameters);
 
