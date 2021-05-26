@@ -490,7 +490,7 @@ export const store = new Vuex.Store({
 				// @ts-ignore
 				window.triggerFuzzy = new window.Fuse(triggerTypes, opts, triggerIndex);
 
-				const inputTypes = nodeTypes.filter((type) => type.group.indexOf('input') >= 0);
+				const inputTypes = nodeTypes.filter((type) => type.group.indexOf('trigger') === -1);
 				// @ts-ignore
 				const inputIndex = window.Fuse.createIndex(opts.keys, inputTypes);
 				// @ts-ignore
@@ -507,7 +507,7 @@ export const store = new Vuex.Store({
 			window.setFuzzy(
 				{
 					keys: [
-						{name: 'displayName', weight: 100},
+						{name: 'displayName', weight: 5},
 						{name: 'description', weight: 1},
 						{name: 'codex.alias', weight: 1.5}],
 					threshold: .2,
